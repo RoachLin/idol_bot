@@ -1,2 +1,4 @@
 # idol_bot
-a robot that can get latest information about idols
+A robot that can get latest information about idols.
+
+This robot is under development!
