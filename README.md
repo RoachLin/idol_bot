@@ -1,8 +1,10 @@
 # idol_bot
-A robot that can get latest information about idols.
+A bot that retrieves the latest information about idols from various websites and sends updates to a QQ group. This bot helps fans stay informed with real-time idol news, including live streaming start times, birthdays, and more.
 
-This robot is under development!
+## QQ Group
+This [QQ](https://im.qq.com/) group is for fans of =LOVE, ≠ME, and ≒JOY: **839036919**
 
----
-
-Check who starred me: https://github.com/RoachLin/idol_bot/stargazers
+## Features
+-  [x] **Showroom Status Checker**: Monitors idol activities on [SHOWROOM](https://www.showroom-live.com/) and provides real-time updates.
+-  [x] **Birthday Reminder**: Notifies users of upcoming idol birthdays.
+-  [ ] **In Development**: More features coming soon, including support for [bilibili](https://www.bilibili.com/) and [YouTube](https://www.youtube.com/) updates, and much more!
