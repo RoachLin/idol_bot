@@ -1,7 +1,7 @@
 import asyncio  # 异步
 import math
 import time
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, time
 
 import aiohttp  # 异步HTTP
 import pyautogui  # 操控鼠标键盘
@@ -125,6 +125,12 @@ async def fetch_showroom_status_with_sem(session, room_id):
 
 
 async def check_showroom_status(queue):
+    # 当前时间转为日本时间，如果是在凌晨0点到5点之间，就每5分钟才检查一次，因为这是睡觉时间不可能开播，不需要每分钟检查一次
+    now = datetime.now(timezone(timedelta(hours=9))).time()
+    if time(0, 0) < now < time(5, 0):
+        if now.minute % 5 != 0:
+            return
+
     send = ""
 
     async with aiohttp.ClientSession() as session:
