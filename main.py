@@ -1,6 +1,5 @@
 import asyncio  # 异步
 import math
-import time
 from datetime import datetime, timezone, timedelta, time
 
 import aiohttp  # 异步HTTP
@@ -143,7 +142,7 @@ async def check_showroom_status(queue):
 
         for i, json in enumerate(responses):
             if showroom_status_list[i] == 1 and json["live_status"] == 2:  # 原来没开播，现在开播
-                if time.time() - showroom_end_time_list[i] > 5 * 60:
+                if math.floor(datetime.now().timestamp()) - showroom_end_time_list[i] > 5 * 60:
                     send += f"{json['room_name']}\n▶️ 直播中！\n\n"
                     showroom_status_list[i] = json["live_status"]
                     print(f"{json['room_name']} 已开播")
@@ -152,7 +151,7 @@ async def check_showroom_status(queue):
                     print(f"{json['room_name']} 疑似断线重连")
             elif showroom_status_list[i] == 2 and json["live_status"] == 1:  # 原来已开播，现在下播
                 showroom_status_list[i] = json["live_status"]
-                showroom_end_time_list[i] = math.ceil(time.time())
+                showroom_end_time_list[i] = math.ceil(datetime.now().timestamp())
                 print(f"{json['room_name']} 已下播")
             elif showroom_status_list[i] == 2 and json["live_status"] == 2:  # 原来已开播，现在直播中
                 print(f"{json['room_name']} 持续直播中……")
