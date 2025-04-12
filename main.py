@@ -4,7 +4,7 @@ from datetime import datetime, time, timedelta, timezone
 
 import pyautogui  # 操控鼠标键盘
 import pyperclip  # 复制到剪贴板（因为pyautogui不支持输入中文，所以用pyperclip先把中文复制到剪贴板，再使用pyautogui按ctrl+v粘贴）
-from aiohttp import ClientSession  # 异步HTTP
+from aiohttp import ClientSession, ClientTimeout  # 异步HTTP
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # 异步定时任务
 from apscheduler.triggers.cron import CronTrigger
 
@@ -102,6 +102,10 @@ message_queue = asyncio.Queue()  # 异步消息队列
 
 semaphore = asyncio.Semaphore(10)  # 限制并发数
 
+default_timeout = ClientTimeout(total=3)
+
+JST = timezone(timedelta(hours=9))  # 日本时区
+
 
 # -------------------------------------------------- 爬虫1：检查直播状态 -------------------------------------------------- #
 async def get_room_info(room_id, session):
@@ -125,40 +129,43 @@ async def limited_get_room_info(room_id, session):
 
 async def run_spider_1():
     # 当前时间转为日本时间，如果是在凌晨0点到5点之间，那么就不用运行，因为这是睡觉时间不可能开播
-    current_time = datetime.now(timezone(timedelta(hours=9))).time()
-    if time(0, 0) <= current_time < time(5, 0):
+    current_time = datetime.now(JST).time()
+    if time(0, 3) < current_time < time(4, 55):
         return
 
-    async with ClientSession(timeout=5) as session:
+    async with ClientSession(timeout=default_timeout) as session:
         tasks = [limited_get_room_info(room_id, session) for room_id in room_id_list]
         response_list = await asyncio.gather(*tasks)
 
         message = ""
 
         for i, response in enumerate(response_list):
+            if response is None:
+                continue
+
             if room_status_list[i] == 1 and response["live_status"] == 2:  # 原来没开播，现在开播了
                 if math.floor(datetime.now().timestamp()) - room_end_time_list[i] > 5 * 60:
-                    message += f"{response["room_name"]}\n▶️ 直播中！\n\n"
+                    message += f"{response['room_name']}\n▶️ 直播中！\n\n"
                     room_status_list[i] = response["live_status"]
-                    print(f"{response["room_name"]} 已开播")
+                    print(f"{response['room_name']} 已开播")
                 else:
                     room_status_list[i] = response["live_status"]
-                    print(f"{response["room_name"]} 断线重连")
+                    print(f"{response['room_name']} 断线重连")
             elif room_status_list[i] == 2 and response["live_status"] == 1:  # 原来已开播，现在下播了
                 room_status_list[i] = response["live_status"]
                 room_end_time_list[i] = math.ceil(datetime.now().timestamp())
-                print(f"{response["room_name"]} 已下播")
+                print(f"{response['room_name']} 已下播")
             elif room_status_list[i] == 2 and response["live_status"] == 2:  # 原来已开播，现在直播中
                 pass
             elif room_status_list[i] == 1 and response["live_status"] == 1:  # 原来没开播，现在也没开播
                 pass
             else:
-                print("警告：未知直播状态！")
+                print(f"警告：未知直播状态！{response["live_status"]}")
 
         if message:
             await message_queue.put(message)
 
-        print("showroom 最后检查时间：" + datetime.now().strftime("%d.%m.%Y %H:%M:%S"))
+        print("showroom 最后检查时间：" + datetime.now().strftime("%Y.%m.%d %H:%M:%S"))
 
 
 # -------------------------------------------------- 爬虫2：检查生日 -------------------------------------------------- #
@@ -166,7 +173,7 @@ async def run_spider_2():
     message = ""
 
     # 转为日本时间：UTC+9
-    today = datetime.now(timezone(timedelta(hours=9))).strftime("%m.%d")
+    today = datetime.now(JST).strftime("%m.%d")
 
     for person in birthday_list:
         if person["birthday"] == today:
@@ -187,11 +194,19 @@ async def send_message():
         pyperclip.copy(message)
 
         # 点击置顶的第一个群聊，防止QQ重启后焦点不在该群聊窗口
-        pyautogui.click(x=2300, y=280)
+        try:
+            pyautogui.click(x=2300, y=280)
+        except Exception as e:
+            print(f"点击失败：{str(e)}")
+            continue
         await asyncio.sleep(1)  # 给切换窗口预留时间
 
         # 发送消息
-        pyautogui.click(x=2666, y=1777)
+        try:
+            pyautogui.click(x=2666, y=1777)
+        except Exception as e:
+            print(f"点击失败：{str(e)}")
+            continue
         await asyncio.sleep(0.5)  # 给一点反应时间
         pyautogui.hotkey("ctrl", "v")
         await asyncio.sleep(0.5)  # 给一点反应时间
