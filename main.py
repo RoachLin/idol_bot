@@ -145,16 +145,16 @@ async def run_spider_1():
 
             if room_status_list[i] == 1 and response["live_status"] == 2:  # 原来没开播，现在开播了
                 if math.floor(datetime.now().timestamp()) - room_end_time_list[i] > 5 * 60:
-                    message += f"{response['room_name']}\n▶️ 直播中！\n\n"
+                    message += f"{response["room_name"]}\n▶️ 直播中！\n\n"
                     room_status_list[i] = response["live_status"]
-                    print(f"{response['room_name']} 已开播")
+                    print(f"{response["room_name"]} 已开播")
                 else:
                     room_status_list[i] = response["live_status"]
-                    print(f"{response['room_name']} 断线重连")
+                    print(f"{response["room_name"]} 断线重连")
             elif room_status_list[i] == 2 and response["live_status"] == 1:  # 原来已开播，现在下播了
                 room_status_list[i] = response["live_status"]
                 room_end_time_list[i] = math.ceil(datetime.now().timestamp())
-                print(f"{response['room_name']} 已下播")
+                print(f"{response["room_name"]} 已下播")
             elif room_status_list[i] == 2 and response["live_status"] == 2:  # 原来已开播，现在直播中
                 pass
             elif room_status_list[i] == 1 and response["live_status"] == 1:  # 原来没开播，现在也没开播
