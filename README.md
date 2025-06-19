@@ -1,6 +1,11 @@
 # idol_bot
 A bot that retrieves the latest information about idols from various websites and sends updates to a QQ group. This bot helps fans stay informed with real-time idol news, including live streaming start times, birthdays, and more.
 
+## Install
+Just run `pip install aiohttp APScheduler PyAutoGUI`
+
+**Recommended:** Using `mamba` instead of `pip` or `conda`
+
 ## QQ Group
 This [QQ](https://im.qq.com/) group is for fans of [=LOVE](https://equal-love.jp/), [≠ME](https://not-equal-me.jp/), and [≒JOY](https://nearly-equal-joy.jp/): **839036919**
 
