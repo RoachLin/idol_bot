@@ -4,7 +4,7 @@ A bot that retrieves the latest information about idols from various websites an
 ## Install
 Just run `pip install aiohttp APScheduler PyAutoGUI`
 
-**Recommended:** Using `mamba` instead of `pip` or `conda`
+When using `conda`, `mamba` and `pixi`, **Recommended** use `conda-forge` channel, and packages are `aiohttp apscheduler pyautogui`
 
 ## QQ Group
 This [QQ](https://im.qq.com/) group is for fans of [=LOVE](https://equal-love.jp/), [≠ME](https://not-equal-me.jp/), and [≒JOY](https://nearly-equal-joy.jp/): **839036919**

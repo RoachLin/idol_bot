@@ -52,7 +52,7 @@ room_id_list = [
     "402345",  # ≒JOY 官方直播间
 ]
 
-room_status_list = [1] * len(room_id_list)  # 1：未开播，2：已开播
+room_status_list = [1] * len(room_id_list)  # 1：未开播，2：已开播，3：已开启投票直播
 
 room_end_time_list = [0] * len(room_id_list)
 
@@ -109,6 +109,7 @@ JST = timezone(timedelta(hours=9))  # 日本时区
 
 # -------------------------------------------------- 爬虫1：检查直播状态 -------------------------------------------------- #
 async def get_room_info(room_id, session):
+    # api文档：https://qiita.com/takeru7584/items/f4ba4c31551204279ed2
     room_url = f"https://www.showroom-live.com/api/live/live_info?room_id={room_id}"
     try:
         async with session.get(room_url) as response:
@@ -158,6 +159,26 @@ async def run_spider_1():
             elif room_status_list[i] == 2 and response["live_status"] == 2:  # 原来已开播，现在直播中
                 pass
             elif room_status_list[i] == 1 and response["live_status"] == 1:  # 原来没开播，现在也没开播
+                pass
+            elif room_status_list[i] == 1 and response["live_status"] == 3:  # 原来没开播，现在开启投票直播
+                if math.floor(datetime.now().timestamp()) - room_end_time_list[i] > 5 * 60:
+                    message += f"{response["room_name"]}\n▶️ 直播中！（投票直播）\n\n"
+                    room_status_list[i] = response["live_status"]
+                    print(f"{response["room_name"]} 已开启投票直播")
+                else:
+                    room_status_list[i] = response["live_status"]
+                    print(f"{response["room_name"]} 断线重连")
+            elif room_status_list[i] == 3 and response["live_status"] == 1:  # 原来在投票直播，现在下播了
+                room_status_list[i] = response["live_status"]
+                room_end_time_list[i] = math.ceil(datetime.now().timestamp())
+                print(f"{response["room_name"]} 已下播")
+            elif room_status_list[i] == 2 and response["live_status"] == 3:  # 原来已开播，现在开启投票
+                room_status_list[i] = response["live_status"]
+                print(f"{response["room_name"]} 已开启投票")
+            elif room_status_list[i] == 3 and response["live_status"] == 2:  # 原来在投票直播，现在结束投票但仍在直播中
+                room_status_list[i] = response["live_status"]
+                print(f"{response["room_name"]} 已结束投票但仍在直播中")
+            elif room_status_list[i] == 3 and response["live_status"] == 3:  # 原来在投票直播，现在也在投票直播
                 pass
             else:
                 print(f"警告：未知直播状态！{response["live_status"]}")
