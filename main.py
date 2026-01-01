@@ -214,14 +214,6 @@ async def send_message():
         message += datetime.now().strftime("%H:%M:%S")
         pyperclip.copy(message)
 
-        # 点击置顶的第一个群聊，防止QQ重启后焦点不在该群聊窗口
-        try:
-            pyautogui.click(x=2300, y=280)
-        except Exception as e:
-            print(f"点击失败：{str(e)}")
-            continue
-        await asyncio.sleep(1)  # 给切换窗口预留时间
-
         # 发送消息
         try:
             pyautogui.click(x=2666, y=1777)
